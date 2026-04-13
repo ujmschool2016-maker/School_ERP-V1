@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ClipboardList, Trophy, Edit3, X, Medal, Star, TrendingUp } from 'lucide-react';
+import { ClipboardList, Trophy, Edit3, X, Medal, Star, TrendingUp, Trash2 } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Student, Result } from '../types';
 
@@ -91,6 +91,17 @@ const ResultView: React.FC = () => {
       marks: r.marks
     });
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this result record permanently?')) {
+      try {
+        await dataService.deleteResult(id);
+        alert('Result deleted successfully!');
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -251,7 +262,10 @@ const ResultView: React.FC = () => {
                                 {term1 ? (
                                   <div className="relative group/cell">
                                     <span className="font-black text-slate-600">{term1.marks}</span>
-                                    <button onClick={() => handleEdit(term1)} className="absolute -right-2 top-0 opacity-0 group-hover/cell:opacity-100 text-indigo-400 p-1"><Edit3 className="w-3 h-3"/></button>
+                                    <div className="absolute -right-6 top-0 opacity-0 group-hover/cell:opacity-100 flex gap-1">
+                                      <button onClick={() => handleEdit(term1)} className="text-indigo-400 p-1 hover:text-indigo-600"><Edit3 className="w-3 h-3"/></button>
+                                      <button onClick={() => handleDelete(term1.id)} className="text-rose-400 p-1 hover:text-rose-600"><Trash2 className="w-3 h-3"/></button>
+                                    </div>
                                   </div>
                                 ) : <span className="text-slate-300">-</span>}
                               </td>
@@ -259,7 +273,10 @@ const ResultView: React.FC = () => {
                                 {term2 ? (
                                   <div className="relative group/cell">
                                     <span className="font-black text-slate-600">{term2.marks}</span>
-                                    <button onClick={() => handleEdit(term2)} className="absolute -right-2 top-0 opacity-0 group-hover/cell:opacity-100 text-indigo-400 p-1"><Edit3 className="w-3 h-3"/></button>
+                                    <div className="absolute -right-6 top-0 opacity-0 group-hover/cell:opacity-100 flex gap-1">
+                                      <button onClick={() => handleEdit(term2)} className="text-indigo-400 p-1 hover:text-indigo-600"><Edit3 className="w-3 h-3"/></button>
+                                      <button onClick={() => handleDelete(term2.id)} className="text-rose-400 p-1 hover:text-rose-600"><Trash2 className="w-3 h-3"/></button>
+                                    </div>
                                   </div>
                                 ) : <span className="text-slate-300">-</span>}
                               </td>
@@ -267,7 +284,10 @@ const ResultView: React.FC = () => {
                                 {term3 ? (
                                   <div className="relative group/cell">
                                     <span className="font-black text-slate-600">{term3.marks}</span>
-                                    <button onClick={() => handleEdit(term3)} className="absolute -right-2 top-0 opacity-0 group-hover/cell:opacity-100 text-indigo-400 p-1"><Edit3 className="w-3 h-3"/></button>
+                                    <div className="absolute -right-6 top-0 opacity-0 group-hover/cell:opacity-100 flex gap-1">
+                                      <button onClick={() => handleEdit(term3)} className="text-indigo-400 p-1 hover:text-indigo-600"><Edit3 className="w-3 h-3"/></button>
+                                      <button onClick={() => handleDelete(term3.id)} className="text-rose-400 p-1 hover:text-rose-600"><Trash2 className="w-3 h-3"/></button>
+                                    </div>
                                   </div>
                                 ) : <span className="text-slate-300">-</span>}
                               </td>
@@ -275,7 +295,10 @@ const ResultView: React.FC = () => {
                                 {annual ? (
                                   <div className="relative group/cell">
                                     <span className="font-black text-slate-600">{annual.marks}</span>
-                                    <button onClick={() => handleEdit(annual)} className="absolute -right-2 top-0 opacity-0 group-hover/cell:opacity-100 text-indigo-400 p-1"><Edit3 className="w-3 h-3"/></button>
+                                    <div className="absolute -right-6 top-0 opacity-0 group-hover/cell:opacity-100 flex gap-1">
+                                      <button onClick={() => handleEdit(annual)} className="text-indigo-400 p-1 hover:text-indigo-600"><Edit3 className="w-3 h-3"/></button>
+                                      <button onClick={() => handleDelete(annual.id)} className="text-rose-400 p-1 hover:text-rose-600"><Trash2 className="w-3 h-3"/></button>
+                                    </div>
                                   </div>
                                 ) : <span className="text-slate-300">-</span>}
                               </td>

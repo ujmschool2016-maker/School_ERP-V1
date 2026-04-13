@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Banknote, History } from 'lucide-react';
+import { Banknote, History, Trash2 } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Teacher, SalaryRecord } from '../types';
 
@@ -34,6 +34,17 @@ const SalaryView: React.FC = () => {
   }, [formData.teacherId, teachers]);
 
   const total = useMemo(() => formData.baseSalary + formData.bonus - formData.deductions, [formData]);
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this salary record?')) {
+      try {
+        await dataService.deleteSalary(id);
+        alert('Salary record deleted!');
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +139,12 @@ const SalaryView: React.FC = () => {
                     </td>
                     <td className="px-8 py-6 font-black text-slate-900 text-center">৳{s.total.toLocaleString()}</td>
                     <td className="px-8 py-6 text-right">
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-wider">Paid</span>
+                      <div className="flex items-center justify-end gap-2">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-black uppercase tracking-wider">Paid</span>
+                        <button onClick={() => handleDelete(s.id)} className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

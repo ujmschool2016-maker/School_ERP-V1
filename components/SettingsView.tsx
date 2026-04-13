@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Info } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Info, Trash2, AlertTriangle } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { ClassRates } from '../types';
 
@@ -32,6 +32,20 @@ const SettingsView: React.FC = () => {
       alert('Global Fee Settings Updated Successfully!');
     } catch (err: any) {
       alert('Failed to save settings: ' + err.message);
+    }
+  };
+
+  const handleClearAllData = async () => {
+    if (confirm('CRITICAL WARNING: This will permanently delete ALL students, teachers, fees, results, and attendance data. This action cannot be undone. Are you absolutely sure?')) {
+      const secondConfirm = confirm('Type "DELETE" is not required, but please confirm one last time. Proceed with total data wipe?');
+      if (secondConfirm) {
+        try {
+          await dataService.clearAllData();
+          alert('All application data has been cleared successfully.');
+        } catch (err: any) {
+          alert('Failed to clear data: ' + err.message);
+        }
+      }
     }
   };
 
@@ -94,6 +108,29 @@ const SettingsView: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="bg-rose-50 p-8 rounded-[2.5rem] border border-rose-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-rose-100 rounded-2xl text-rose-600">
+              <AlertTriangle className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-rose-900 uppercase">Danger Zone</h3>
+              <p className="text-sm text-rose-600 font-medium">Permanently clear all application records</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleClearAllData}
+            className="flex items-center gap-2 bg-rose-600 text-white px-8 py-4 rounded-2xl hover:bg-rose-700 shadow-xl shadow-rose-100 font-black transition-all active:scale-95"
+          >
+            <Trash2 className="w-5 h-5" /> CLEAR ALL DATABASE DATA
+          </button>
+        </div>
+        <p className="mt-6 text-[10px] font-black text-rose-400 uppercase tracking-widest leading-relaxed">
+          Warning: This operation will wipe all student profiles, teacher records, financial history, results, and attendance logs. Fee structures (settings) will be preserved.
+        </p>
       </div>
     </div>
   );

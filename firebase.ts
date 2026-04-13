@@ -1,12 +1,16 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged, User, signInAnonymously } from 'firebase/auth';
-import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, onSnapshot, getDocFromServer } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, getDocs, updateDoc, deleteDoc, query, where, onSnapshot, getDocFromServer, writeBatch } from 'firebase/firestore';
 import firebaseConfig from './firebase-applet-config.json';
 
 const app = initializeApp(firebaseConfig);
+const dbId = firebaseConfig.firestoreDatabaseId || '(default)';
+export const db = getFirestore(app, dbId);
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const googleProvider = new GoogleAuthProvider();
+
+// For debugging in browser console
+(window as any).firebaseDebug = { app, db, auth, config: firebaseConfig };
 
 export { 
   collection, 
@@ -19,6 +23,7 @@ export {
   query, 
   where, 
   onSnapshot,
+  writeBatch,
   signInWithPopup,
   signOut,
   onAuthStateChanged,
@@ -73,16 +78,30 @@ export function handleFirestoreError(error: unknown, operationType: OperationTyp
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  console.error('Firestore Error Details:', errInfo);
+  
+  if (errInfo.error.includes('permission-denied')) {
+    alert('Permission Denied: You do not have access to this data. Please ensure you are logged in as an administrator and have applied the security rules in the Firebase Console.');
+  } else if (errInfo.error.includes('not-found')) {
+    alert('Database Not Found: Please ensure you have enabled Cloud Firestore in your Firebase Console.');
+  } else {
+    alert(`Firebase Error: ${errInfo.error}`);
+  }
+  
   throw new Error(JSON.stringify(errInfo));
 }
 
 async function testConnection() {
+  console.log('Testing Firebase connection...');
   try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if(error instanceof Error && error.message.includes('the client is offline')) {
-      console.error("Please check your Firebase configuration. ");
+    const testDoc = await getDocFromServer(doc(db, 'test', 'connection'));
+    console.log('Firebase connection test successful');
+  } catch (error: any) {
+    console.warn('Firebase connection test warning:', error.message);
+    if (error.message.includes('the client is offline')) {
+      console.error("Firebase is offline. Check your internet or configuration.");
+    } else if (error.message.includes('permission-denied')) {
+      console.info("Note: Permission denied for test connection is expected if rules are strict.");
     }
   }
 }

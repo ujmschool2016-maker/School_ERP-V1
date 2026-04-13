@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, UserCheck, Edit3, Camera, User, Phone, Calendar, Briefcase, Award } from 'lucide-react';
+import { Plus, UserCheck, Edit3, Camera, User, Phone, Calendar, Briefcase, Award, Trash2 } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Teacher } from '../types';
 
@@ -46,6 +46,17 @@ const TeacherView: React.FC = () => {
   const handleEdit = (t: Teacher) => {
     setEditingId(t.id);
     setFormData(t);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this teacher record permanently?')) {
+      try {
+        await dataService.deleteTeacher(id);
+        alert('Teacher record deleted successfully!');
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -152,6 +163,12 @@ const TeacherView: React.FC = () => {
                   className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
                 >
                   <Edit3 className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => handleDelete(t.id)} 
+                  className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                >
+                  <Trash2 className="w-5 h-5" />
                 </button>
               </div>
             </div>

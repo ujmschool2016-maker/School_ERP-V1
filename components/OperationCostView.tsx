@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { HardHat, TrendingDown, Plus, Wallet, Edit3, Home, Award, Sparkles, MapPin, Trophy } from 'lucide-react';
+import { HardHat, TrendingDown, Plus, Wallet, Edit3, Home, Award, Sparkles, MapPin, Trophy, Trash2 } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { OperationCost, OperationCategory } from '../types';
 
@@ -30,6 +30,17 @@ const OperationCostView: React.FC = () => {
     setFormData(c);
   };
 
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this expense record?')) {
+      try {
+        await dataService.deleteCost(id);
+        alert('Expense record deleted!');
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -38,6 +49,7 @@ const OperationCostView: React.FC = () => {
       } else {
         await dataService.saveCost(formData as Omit<OperationCost, 'id'>);
       }
+      alert(editingId ? 'Expense record updated!' : 'Expense recorded successfully!');
       setFormData({ category: 'Utility', description: '', amount: 0, date: new Date().toISOString().split('T')[0] });
       setEditingId(null);
     } catch (err: any) {
@@ -184,6 +196,12 @@ const OperationCostView: React.FC = () => {
                             className="p-2 text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-all"
                           >
                             <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(c.id)}
+                            className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all"
+                          >
+                            <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </td>

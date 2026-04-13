@@ -50,13 +50,28 @@ const AttendanceView: React.FC = () => {
         className: student.className,
         date: today
       });
+      alert(`Attendance marked for ${student.name} as ${status}`);
     } catch (err: any) {
       alert('Failed to mark attendance: ' + err.message);
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this attendance record?')) {
+      try {
+        await dataService.deleteAttendance(id);
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
+    }
+  };
+
+  const getStatusRecord = (roll: string) => {
+    return attendance.find(a => a.entityId === roll && a.date === today);
+  };
+
   const getStatus = (roll: string) => {
-    return attendance.find(a => a.entityId === roll && a.date === today)?.status;
+    return getStatusRecord(roll)?.status;
   };
 
   return (
@@ -124,7 +139,8 @@ const AttendanceView: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {filteredStudents.map((s) => {
-                const status = getStatus(s.roll);
+                const record = getStatusRecord(s.roll);
+                const status = record?.status;
                 return (
                   <tr key={s.id} className="hover:bg-slate-50/50">
                     <td className="px-8 py-5">
@@ -136,10 +152,15 @@ const AttendanceView: React.FC = () => {
                     </td>
                     <td className="px-8 py-5">
                       {status ? (
-                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
-                          status === 'Present' ? 'bg-emerald-100 text-emerald-700' : 
-                          status === 'Absent' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
-                        }`}>{status}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                            status === 'Present' ? 'bg-emerald-100 text-emerald-700' : 
+                            status === 'Absent' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700'
+                          }`}>{status}</span>
+                          <button onClick={() => handleDelete(record!.id)} className="p-1 text-slate-300 hover:text-rose-500 transition-colors">
+                            <XCircle className="w-3 h-3" />
+                          </button>
+                        </div>
                       ) : <span className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Not Marked</span>}
                     </td>
                     <td className="px-8 py-5">

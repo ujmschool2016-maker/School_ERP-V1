@@ -11,6 +11,7 @@ import {
   query, 
   where, 
   onSnapshot,
+  writeBatch,
   handleFirestoreError,
   OperationType
 } from '../firebase';
@@ -114,19 +115,47 @@ export const dataService = {
     }
   },
   saveStudent: async (student: Omit<Student, 'id'>) => {
+    console.log('Attempting to save student:', student);
     try {
+      // Duplicate check: Roll and Class
+      const q = query(
+        collection(db, COLLECTIONS.STUDENTS),
+        where('roll', '==', student.roll),
+        where('className', '==', student.className)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`Student with Roll ${student.roll} already exists in ${student.className}`);
+      }
+
       const id = Date.now().toString();
       const newStudent = { ...student, id };
       await setDoc(doc(db, COLLECTIONS.STUDENTS, id), newStudent);
+      console.log('Student saved successfully with ID:', id);
       return newStudent;
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error in saveStudent:', error);
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.STUDENTS);
     }
   },
   updateStudent: async (student: Student) => {
     try {
+      // Duplicate check for update: Roll and Class (excluding current student)
+      const q = query(
+        collection(db, COLLECTIONS.STUDENTS),
+        where('roll', '==', student.roll),
+        where('className', '==', student.className)
+      );
+      const snapshot = await getDocs(q);
+      const duplicate = snapshot.docs.find(doc => doc.id !== student.id);
+      if (duplicate) {
+        throw new Error(`Another student with Roll ${student.roll} already exists in ${student.className}`);
+      }
+
       await updateDoc(doc(db, COLLECTIONS.STUDENTS, student.id), student as any);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.STUDENTS}/${student.id}`);
     }
   },
@@ -149,19 +178,43 @@ export const dataService = {
   },
   saveTeacher: async (teacher: Omit<Teacher, 'id'>) => {
     try {
+      // Duplicate check: Mobile
+      const q = query(collection(db, COLLECTIONS.TEACHERS), where('mobile', '==', teacher.mobile));
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`Teacher with mobile ${teacher.mobile} is already registered`);
+      }
+
       const id = Date.now().toString();
       const newTeacher = { ...teacher, id };
       await setDoc(doc(db, COLLECTIONS.TEACHERS, id), newTeacher);
       return newTeacher;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already registered')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.TEACHERS);
     }
   },
   updateTeacher: async (teacher: Teacher) => {
     try {
+      // Duplicate check for update: Mobile (excluding current teacher)
+      const q = query(collection(db, COLLECTIONS.TEACHERS), where('mobile', '==', teacher.mobile));
+      const snapshot = await getDocs(q);
+      const duplicate = snapshot.docs.find(doc => doc.id !== teacher.id);
+      if (duplicate) {
+        throw new Error(`Another teacher with mobile ${teacher.mobile} is already registered`);
+      }
+
       await updateDoc(doc(db, COLLECTIONS.TEACHERS, teacher.id), teacher as any);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already registered')) throw error;
       handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.TEACHERS}/${teacher.id}`);
+    }
+  },
+  deleteTeacher: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.TEACHERS, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.TEACHERS}/${id}`);
     }
   },
 
@@ -176,14 +229,35 @@ export const dataService = {
   },
   markAttendance: async (record: Omit<AttendanceRecord, 'id' | 'time'>) => {
     try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // Duplicate check: Entity, Type, and Date
+      const q = query(
+        collection(db, COLLECTIONS.ATTENDANCE),
+        where('entityId', '==', record.entityId),
+        where('type', '==', record.type),
+        where('date', '==', today)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`Attendance already marked for today`);
+      }
+
       const id = Date.now().toString();
       const time = new Date().toLocaleTimeString();
-      const today = new Date().toISOString().split('T')[0];
       const newRecord = { ...record, id, time, date: today };
       await setDoc(doc(db, COLLECTIONS.ATTENDANCE, id), newRecord);
       return newRecord;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already marked')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.ATTENDANCE);
+    }
+  },
+  deleteAttendance: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.ATTENDANCE, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.ATTENDANCE}/${id}`);
     }
   },
 
@@ -198,12 +272,31 @@ export const dataService = {
   },
   saveFee: async (fee: Omit<FeeRecord, 'id'>) => {
     try {
+      // Duplicate check: Student and Month
+      const q = query(
+        collection(db, COLLECTIONS.FEES),
+        where('studentRoll', '==', fee.studentRoll),
+        where('month', '==', fee.month)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`Fees for ${fee.month} already recorded for this student`);
+      }
+
       const id = Date.now().toString();
       const newFee = { ...fee, id };
       await setDoc(doc(db, COLLECTIONS.FEES, id), newFee);
       return newFee;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already recorded')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.FEES);
+    }
+  },
+  deleteFee: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.FEES, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.FEES}/${id}`);
     }
   },
 
@@ -218,6 +311,18 @@ export const dataService = {
   },
   saveResult: async (result: Omit<Result, 'id' | 'grade' | 'status'>) => {
     try {
+      // Duplicate check: Student, Exam, and Subject
+      const q = query(
+        collection(db, COLLECTIONS.RESULTS),
+        where('studentRoll', '==', result.studentRoll),
+        where('examType', '==', result.examType),
+        where('subject', '==', result.subject)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`Result for this subject and exam already exists`);
+      }
+
       const id = Date.now().toString();
       const m = result.marks;
       const status = m >= 33 ? 'Pass' : 'Fail';
@@ -232,12 +337,26 @@ export const dataService = {
       const newResult = { ...result, id, status, grade } as Result;
       await setDoc(doc(db, COLLECTIONS.RESULTS, id), newResult);
       return newResult;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.RESULTS);
     }
   },
   updateResult: async (result: Result) => {
     try {
+      // Duplicate check for update
+      const q = query(
+        collection(db, COLLECTIONS.RESULTS),
+        where('studentRoll', '==', result.studentRoll),
+        where('examType', '==', result.examType),
+        where('subject', '==', result.subject)
+      );
+      const snapshot = await getDocs(q);
+      const duplicate = snapshot.docs.find(doc => doc.id !== result.id);
+      if (duplicate) {
+        throw new Error(`Another result for this subject and exam already exists`);
+      }
+
       const m = result.marks;
       const status = m >= 33 ? 'Pass' : 'Fail';
       let grade = 'F';
@@ -249,8 +368,16 @@ export const dataService = {
       else if (m >= 33) grade = 'D';
 
       await updateDoc(doc(db, COLLECTIONS.RESULTS, result.id), { ...result, status, grade } as any);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.RESULTS}/${result.id}`);
+    }
+  },
+  deleteResult: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.RESULTS, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.RESULTS}/${id}`);
     }
   },
 
@@ -265,11 +392,24 @@ export const dataService = {
   },
   saveLeave: async (leave: Omit<LeaveRequest, 'id'>) => {
     try {
+      // Duplicate check: Applicant, Start, and End
+      const q = query(
+        collection(db, COLLECTIONS.LEAVES),
+        where('applicantId', '==', leave.applicantId),
+        where('startDate', '==', leave.startDate),
+        where('endDate', '==', leave.endDate)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`A similar leave request already exists`);
+      }
+
       const id = Date.now().toString();
       const newLeave = { ...leave, id };
       await setDoc(doc(db, COLLECTIONS.LEAVES, id), newLeave);
       return newLeave;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.LEAVES);
     }
   },
@@ -278,6 +418,13 @@ export const dataService = {
       await updateDoc(doc(db, COLLECTIONS.LEAVES, id), { status });
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.LEAVES}/${id}`);
+    }
+  },
+  deleteLeave: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.LEAVES, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.LEAVES}/${id}`);
     }
   },
 
@@ -292,12 +439,31 @@ export const dataService = {
   },
   saveSalary: async (salary: Omit<SalaryRecord, 'id'>) => {
     try {
+      // Duplicate check: Teacher and Month
+      const q = query(
+        collection(db, COLLECTIONS.SALARIES),
+        where('teacherId', '==', salary.teacherId),
+        where('month', '==', salary.month)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`Salary for ${salary.month} already recorded for this teacher`);
+      }
+
       const id = Date.now().toString();
       const newSalary = { ...salary, id };
       await setDoc(doc(db, COLLECTIONS.SALARIES, id), newSalary);
       return newSalary;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already recorded')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.SALARIES);
+    }
+  },
+  deleteSalary: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.SALARIES, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.SALARIES}/${id}`);
     }
   },
 
@@ -312,19 +478,55 @@ export const dataService = {
   },
   saveCost: async (cost: Omit<OperationCost, 'id'>) => {
     try {
+      // Duplicate check: Category, Description, Amount, and Date
+      const q = query(
+        collection(db, COLLECTIONS.COSTS),
+        where('category', '==', cost.category),
+        where('description', '==', cost.description),
+        where('amount', '==', cost.amount),
+        where('date', '==', cost.date)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        throw new Error(`An identical expense record already exists`);
+      }
+
       const id = Date.now().toString();
       const newCost = { ...cost, id };
       await setDoc(doc(db, COLLECTIONS.COSTS, id), newCost);
       return newCost;
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.CREATE, COLLECTIONS.COSTS);
     }
   },
   updateCost: async (cost: OperationCost) => {
     try {
+      // Duplicate check for update
+      const q = query(
+        collection(db, COLLECTIONS.COSTS),
+        where('category', '==', cost.category),
+        where('description', '==', cost.description),
+        where('amount', '==', cost.amount),
+        where('date', '==', cost.date)
+      );
+      const snapshot = await getDocs(q);
+      const duplicate = snapshot.docs.find(doc => doc.id !== cost.id);
+      if (duplicate) {
+        throw new Error(`Another identical expense record already exists`);
+      }
+
       await updateDoc(doc(db, COLLECTIONS.COSTS, cost.id), cost as any);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.message.includes('already exists')) throw error;
       handleFirestoreError(error, OperationType.UPDATE, `${COLLECTIONS.COSTS}/${cost.id}`);
+    }
+  },
+  deleteCost: async (id: string) => {
+    try {
+      await deleteDoc(doc(db, COLLECTIONS.COSTS, id));
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, `${COLLECTIONS.COSTS}/${id}`);
     }
   },
 
@@ -384,6 +586,32 @@ export const dataService = {
       },
       feeTrends
     };
+  },
+
+  clearAllData: async () => {
+    try {
+      const collectionsToClear = [
+        COLLECTIONS.STUDENTS,
+        COLLECTIONS.TEACHERS,
+        COLLECTIONS.FEES,
+        COLLECTIONS.RESULTS,
+        COLLECTIONS.COSTS,
+        COLLECTIONS.SALARIES,
+        COLLECTIONS.LEAVES,
+        COLLECTIONS.ATTENDANCE
+      ];
+
+      for (const collName of collectionsToClear) {
+        const snapshot = await getDocs(collection(db, collName));
+        const batch = writeBatch(db);
+        snapshot.docs.forEach((d) => {
+          batch.delete(d.ref);
+        });
+        await batch.commit();
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.DELETE, 'all_collections');
+    }
   }
 };
 ;

@@ -3,12 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { Search, Plus, Trash2, X, AlertCircle, Camera, User, MapPin, Edit3, ExternalLink, ShieldCheck } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Student } from '../types';
+import { useAuth } from './FirebaseProvider';
 
 interface StudentViewProps {
   onViewStudent?: (roll: string) => void;
 }
 
 const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
+  const { user } = useAuth();
   const [students, setStudents] = useState<Student[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -45,11 +47,14 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
     try {
       if (editingId) {
         await dataService.updateStudent({ ...formData, id: editingId } as Student);
+        alert('Student record updated successfully!');
       } else {
         await dataService.saveStudent(formData as Omit<Student, 'id'>);
+        alert('Student registered successfully!');
       }
       setIsModalOpen(false);
       resetForm();
@@ -57,6 +62,7 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
       setError(err.message);
     }
   };
+
 
   const resetForm = () => {
     setEditingId(null);

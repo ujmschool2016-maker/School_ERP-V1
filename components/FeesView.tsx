@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { CreditCard, History, CheckCircle2, AlertCircle, Search, Printer, ReceiptText } from 'lucide-react';
+import { CreditCard, History, CheckCircle2, AlertCircle, Search, Printer, ReceiptText, Trash2 } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Student, FeeRecord, ClassRates } from '../types';
 
@@ -113,10 +113,22 @@ const FeesView: React.FC = () => {
         admissionFee: 0, registrationFee: 0, idCardDiaryFee: 0, sessionFee: 0, tuitionFee: 0, 
         examFee: 0, culturalSportsFee: 0, scholarshipExamFee: 0, othersFee: 0, paidAmount: 0
       });
+      alert('Fee collection recorded successfully!');
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err: any) {
       alert('Failed to save fee record: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this fee record?')) {
+      try {
+        await dataService.deleteFee(id);
+        alert('Fee record deleted!');
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
     }
   };
 
@@ -322,7 +334,10 @@ const FeesView: React.FC = () => {
                     </td>
                     <td className="px-8 py-5 text-center font-black text-emerald-600">৳{f.paidAmount.toLocaleString()}</td>
                     <td className="px-8 py-5 text-right">
-                      <button onClick={() => handlePrint(f)} className="p-2 bg-slate-100 rounded-xl hover:bg-indigo-600 hover:text-white shadow-sm transition-colors"><Printer className="w-4 h-4" /></button>
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => handlePrint(f)} className="p-2 bg-slate-100 rounded-xl hover:bg-indigo-600 hover:text-white shadow-sm transition-colors"><Printer className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(f.id)} className="p-2 bg-slate-100 rounded-xl hover:bg-rose-600 hover:text-white shadow-sm transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
                     </td>
                   </tr>
                 ))}

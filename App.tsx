@@ -14,6 +14,51 @@ import StudentDetailsView from './components/StudentDetailsView';
 import SettingsView from './components/SettingsView';
 import { FirebaseProvider, useAuth } from './components/FirebaseProvider';
 import ErrorBoundary from './components/ErrorBoundary';
+import { db } from './firebase';
+import { doc, getDocFromServer } from 'firebase/firestore';
+
+const ConnectionStatus: React.FC = () => {
+  const [status, setStatus] = useState<'testing' | 'online' | 'offline' | 'error'>('testing');
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    const check = async () => {
+      try {
+        // Try to fetch a non-existent doc just to test connection
+        await getDocFromServer(doc(db, '_connection_test_', 'ping'));
+        setStatus('online');
+      } catch (err: any) {
+        console.warn('Connection check failed:', err.message);
+        if (err.message.includes('offline')) {
+          setStatus('offline');
+        } else if (err.message.includes('permission-denied')) {
+          // Permission denied means we ARE connected but rules blocked us
+          setStatus('online');
+        } else {
+          setStatus('error');
+          setErrorMsg(err.message);
+        }
+      }
+    };
+    check();
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
+      <div className={`w-2 h-2 rounded-full ${
+        status === 'online' ? 'bg-emerald-500 animate-pulse' : 
+        status === 'offline' ? 'bg-amber-500' : 
+        status === 'error' ? 'bg-rose-500' : 'bg-slate-300'
+      }`} />
+      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+        {status === 'testing' ? 'Connecting...' : status === 'online' ? 'Firebase Live' : status === 'offline' ? 'Offline' : 'Config Error'}
+      </span>
+      {status === 'error' && (
+        <button onClick={() => alert(`Firebase Error: ${errorMsg}`)} className="text-[10px] text-rose-500 underline font-bold">Details</button>
+      )}
+    </div>
+  );
+};
 
 type View = 'dashboard' | 'students' | 'teachers' | 'attendance' | 'fees' | 'results' | 'leaves' | 'salaries' | 'costs' | 'sheets' | 'student-details' | 'settings';
 
@@ -143,6 +188,7 @@ const AppContent: React.FC = () => {
             {currentView === 'student-details' ? 'Student Profile' : currentView.replace('-', ' ')}
           </h2>
           <div className="flex items-center gap-4">
+            <ConnectionStatus />
             <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-full relative">
               <Bell className="w-5 h-5" />
               <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 bg-rose-500 rounded-full ring-2 ring-white"></span>

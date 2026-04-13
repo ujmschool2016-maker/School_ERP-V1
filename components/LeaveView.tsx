@@ -41,10 +41,22 @@ const LeaveView: React.FC = () => {
         applicantName: applicant.name,
         status: 'Pending'
       });
+      alert('Leave application submitted successfully!');
       setIsModalOpen(false);
       setFormData({ type: 'Student', category: 'Personal', startDate: '', endDate: '', reason: '', applicantId: '' });
     } catch (err: any) {
       alert('Failed to submit leave application: ' + err.message);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm('Delete this leave application permanently?')) {
+      try {
+        await dataService.deleteLeave(id);
+        alert('Leave application deleted!');
+      } catch (err: any) {
+        alert('Failed to delete: ' + err.message);
+      }
     }
   };
 
@@ -108,16 +120,21 @@ const LeaveView: React.FC = () => {
                     </span>
                   </td>
                   <td className="px-8 py-6 text-right">
-                    {l.status === 'Pending' && (
-                      <div className="flex justify-end gap-2">
-                        <button onClick={() => updateStatus(l.id, 'Approved')} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Approve">
-                          <CheckCircle className="w-5 h-5" />
-                        </button>
-                        <button onClick={() => updateStatus(l.id, 'Rejected')} className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Reject">
-                          <XCircle className="w-5 h-5" />
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex justify-end gap-2">
+                      {l.status === 'Pending' && (
+                        <>
+                          <button onClick={() => updateStatus(l.id, 'Approved')} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-xl transition-all" title="Approve">
+                            <CheckCircle className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => updateStatus(l.id, 'Rejected')} className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Reject">
+                            <XCircle className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                      <button onClick={() => handleDelete(l.id)} className="p-2 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all" title="Delete">
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
