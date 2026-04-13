@@ -1,0 +1,168 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "Student information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "roll": { "type": "string" },
+        "name": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "motherName": { "type": "string" },
+        "address": { "type": "string" },
+        "mobile": { "type": "string" },
+        "dob": { "type": "string" },
+        "className": { "type": "string" },
+        "photo": { "type": "string" }
+      },
+      "required": ["id", "roll", "name", "className"]
+    },
+    "Teacher": {
+      "title": "Teacher",
+      "description": "Teacher information",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "address": { "type": "string" },
+        "mobile": { "type": "string" },
+        "dob": { "type": "string" },
+        "designation": { "type": "string" },
+        "joiningDate": { "type": "string" },
+        "baseSalary": { "type": "number" },
+        "photo": { "type": "string" }
+      },
+      "required": ["id", "name", "designation", "baseSalary"]
+    },
+    "ClassRates": {
+      "title": "ClassRates",
+      "description": "Fee rates for each class",
+      "type": "object",
+      "properties": {
+        "className": { "type": "string" },
+        "admissionFee": { "type": "number" },
+        "tuitionFee": { "type": "number" },
+        "examFee": { "type": "number" },
+        "sessionFee": { "type": "number" },
+        "registrationFee": { "type": "number" }
+      },
+      "required": ["className"]
+    },
+    "AttendanceRecord": {
+      "title": "AttendanceRecord",
+      "description": "Daily attendance record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "entityId": { "type": "string" },
+        "entityName": { "type": "string" },
+        "type": { "type": "string", "enum": ["Student", "Teacher"] },
+        "date": { "type": "string" },
+        "status": { "type": "string", "enum": ["Present", "Absent", "Late"] },
+        "time": { "type": "string" },
+        "className": { "type": "string" }
+      },
+      "required": ["id", "entityId", "type", "date", "status"]
+    },
+    "FeeRecord": {
+      "title": "FeeRecord",
+      "description": "Student fee payment record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentRoll": { "type": "string" },
+        "month": { "type": "string" },
+        "admissionFee": { "type": "number" },
+        "registrationFee": { "type": "number" },
+        "idCardDiaryFee": { "type": "number" },
+        "sessionFee": { "type": "number" },
+        "tuitionFee": { "type": "number" },
+        "examFee": { "type": "number" },
+        "culturalSportsFee": { "type": "number" },
+        "scholarshipExamFee": { "type": "number" },
+        "othersFee": { "type": "number" },
+        "previousDue": { "type": "number" },
+        "total": { "type": "number" },
+        "paidAmount": { "type": "number" },
+        "dueAmount": { "type": "number" }
+      },
+      "required": ["id", "studentRoll", "month", "total", "paidAmount"]
+    },
+    "Result": {
+      "title": "Result",
+      "description": "Student exam result",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentRoll": { "type": "string" },
+        "className": { "type": "string" },
+        "examType": { "type": "string", "enum": ["1st", "2nd", "3rd", "Annual"] },
+        "subject": { "type": "string" },
+        "marks": { "type": "number" },
+        "grade": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pass", "Fail"] }
+      },
+      "required": ["id", "studentRoll", "className", "examType", "subject", "marks"]
+    },
+    "LeaveRequest": {
+      "title": "LeaveRequest",
+      "description": "Leave application",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "applicantId": { "type": "string" },
+        "applicantName": { "type": "string" },
+        "type": { "type": "string", "enum": ["Student", "Teacher"] },
+        "category": { "type": "string", "enum": ["Sick", "Personal", "Emergency"] },
+        "startDate": { "type": "string" },
+        "endDate": { "type": "string" },
+        "reason": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] }
+      },
+      "required": ["id", "applicantId", "type", "startDate", "endDate", "status"]
+    },
+    "SalaryRecord": {
+      "title": "SalaryRecord",
+      "description": "Teacher salary payment",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "month": { "type": "string" },
+        "baseSalary": { "type": "number" },
+        "bonus": { "type": "number" },
+        "deductions": { "type": "number" },
+        "total": { "type": "number" },
+        "paymentDate": { "type": "string" },
+        "status": { "type": "string", "enum": ["Paid", "Pending"] }
+      },
+      "required": ["id", "teacherId", "month", "total", "status"]
+    },
+    "OperationCost": {
+      "title": "OperationCost",
+      "description": "School operation cost",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "category": { "type": "string" },
+        "description": { "type": "string" },
+        "amount": { "type": "number" },
+        "date": { "type": "string" }
+      },
+      "required": ["id", "category", "amount", "date"]
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": { "schema": "Student", "description": "Student records" },
+    "/teachers/{teacherId}": { "schema": "Teacher", "description": "Teacher records" },
+    "/rates/{rateId}": { "schema": "ClassRates", "description": "Class fee rates" },
+    "/attendance/{attendanceId}": { "schema": "AttendanceRecord", "description": "Attendance records" },
+    "/fees/{feeId}": { "schema": "FeeRecord", "description": "Fee payment records" },
+    "/results/{resultId}": { "schema": "Result", "description": "Exam results" },
+    "/leaves/{leaveId}": { "schema": "LeaveRequest", "description": "Leave requests" },
+    "/salaries/{salaryId}": { "schema": "SalaryRecord", "description": "Salary payments" },
+    "/costs/{costId}": { "schema": "OperationCost", "description": "Operation costs" }
+  }
+}
