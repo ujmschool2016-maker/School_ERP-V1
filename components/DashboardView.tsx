@@ -67,13 +67,13 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onSearchStudent }) => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
-      <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-8">
-        <div className="relative z-10 max-w-xl">
-          <h2 className="text-3xl font-black mb-2">Welcome Back, Admin!</h2>
-          <p className="text-indigo-100 font-medium">Instantly access student performance, financial arrears, and attendance health from one central terminal.</p>
+      <div className="bg-indigo-600 rounded-[2.5rem] p-6 sm:p-8 text-white relative overflow-hidden flex flex-col lg:flex-row items-center justify-between gap-8">
+        <div className="relative z-10 max-w-xl text-center lg:text-left">
+          <h2 className="text-2xl sm:text-3xl font-black mb-2">Welcome Back, Admin!</h2>
+          <p className="text-indigo-100 font-medium text-sm sm:text-base">Instantly access student performance, financial arrears, and attendance health from one central terminal.</p>
         </div>
-        <form onSubmit={handleSearchSubmit} className="relative z-10 w-full md:w-96">
-          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2">Student Quick Lookup</p>
+        <form onSubmit={handleSearchSubmit} className="relative z-10 w-full lg:w-96">
+          <p className="text-[10px] font-black uppercase tracking-widest text-indigo-200 mb-2 text-center lg:text-left">Student Quick Lookup</p>
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400 group-focus-within:text-indigo-600 transition-colors" />
             <input 
@@ -88,37 +88,37 @@ const DashboardView: React.FC<DashboardViewProps> = ({ onSearchStudent }) => {
             </button>
           </div>
         </form>
-        <Wallet className="absolute -right-10 -bottom-10 w-64 h-64 text-white/5 rotate-12" />
+        <Wallet className="absolute -right-10 -bottom-10 w-64 h-64 text-white/5 rotate-12 hidden sm:block" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 sm:gap-6">
         {cards.map((card, i) => (
           <div key={i} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm transition-transform hover:scale-[1.02]">
             <div className={`w-10 h-10 rounded-2xl ${card.bg} flex items-center justify-center mb-4`}>
               <card.icon className={`w-5 h-5 ${card.color}`} />
             </div>
             <p className="text-slate-500 text-[10px] font-black uppercase tracking-wider">{card.label}</p>
-            <p className="text-2xl font-black text-slate-900 mt-1">{card.value}</p>
+            <p className="text-xl sm:text-2xl font-black text-slate-900 mt-1">{card.value}</p>
             <p className="text-[10px] font-bold text-slate-400 mt-1">{card.sub}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
-          <div className="flex justify-between items-center mb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
+        <div className="lg:col-span-2 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-slate-200 shadow-sm">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
-              <h3 className="text-xl font-black text-slate-900">Financial Pulse</h3>
-              <p className="text-sm text-slate-500 font-medium">Monthly collection trends (BDT)</p>
+              <h3 className="text-lg sm:text-xl font-black text-slate-900">Financial Pulse</h3>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium">Monthly collection trends (BDT)</p>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right">
               <p className="text-[10px] font-bold text-slate-400 uppercase">Net Balance</p>
-              <p className={`text-xl font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+              <p className={`text-lg sm:text-xl font-black ${netProfit >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 ৳{netProfit.toLocaleString()}
               </p>
             </div>
           </div>
-          <div className="h-80 w-full">
+          <div className="h-64 sm:h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={stats.feeTrends}>
                 <defs>

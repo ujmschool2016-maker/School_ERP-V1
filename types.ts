@@ -8,6 +8,7 @@ export interface Student {
   address: string;
   mobile: string;
   dob: string;
+  gender: 'Male' | 'Female';
   className: string;
   photo?: string;
 }
@@ -19,6 +20,7 @@ export interface Teacher {
   address: string;
   mobile: string;
   dob: string;
+  gender: 'Male' | 'Female';
   designation: string;
   joiningDate: string;
   baseSalary: number;

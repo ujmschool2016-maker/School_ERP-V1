@@ -1,0 +1,46 @@
+
+@import "tailwindcss";
+
+@theme {
+  --font-inter: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    @apply text-[14px] sm:text-[15px] lg:text-[16px];
+  }
+}
+
+@layer components {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/* Responsive Table Fix */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Responsive Typography */
+.text-responsive-h1 {
+  @apply text-2xl sm:text-3xl lg:text-4xl font-black;
+}
+
+.text-responsive-h2 {
+  @apply text-xl sm:text-2xl lg:text-3xl font-black;
+}
+
+.text-responsive-body {
+  @apply text-sm sm:text-base;
+}

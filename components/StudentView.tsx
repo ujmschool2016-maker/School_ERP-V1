@@ -17,7 +17,7 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<Partial<Student>>({
-    roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', className: '', photo: ''
+    roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', gender: 'Male', className: '', photo: ''
   });
 
   useEffect(() => {
@@ -66,7 +66,7 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', className: '', photo: '' });
+    setFormData({ roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', gender: 'Male', className: '', photo: '' });
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -135,6 +135,9 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
                       <div>
                         <div className="flex items-center gap-2">
                           <p className="font-black text-slate-900 leading-tight">{s.name}</p>
+                          <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${s.gender === 'Male' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
+                            {s.gender}
+                          </span>
                           <ExternalLink className="w-3 h-3 text-indigo-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                         </div>
                         <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest mt-1">Roll: {s.roll}</p>
@@ -250,6 +253,17 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Birth Date</label>
                   <input required type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-bold" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Gender</label>
+                  <div className="flex gap-4">
+                    {['Male', 'Female'].map(g => (
+                      <label key={g} className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-2xl border-2 cursor-pointer transition-all ${formData.gender === g ? 'border-indigo-600 bg-indigo-50 text-indigo-600' : 'border-slate-100 bg-slate-50 text-slate-400'}`}>
+                        <input type="radio" name="gender" value={g} checked={formData.gender === g} onChange={e => setFormData({...formData, gender: e.target.value as any})} className="hidden" />
+                        <span className="text-xs font-black uppercase tracking-widest">{g}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
                 <div className="md:col-span-2">
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Present Address</label>

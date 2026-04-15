@@ -146,7 +146,7 @@ const FeesView: React.FC = () => {
   };
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 animate-in fade-in duration-500 relative">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-in fade-in duration-500 relative">
       
       {/* Printable Area */}
       {printableRecord && (
@@ -232,8 +232,8 @@ const FeesView: React.FC = () => {
       )}
 
       {/* Main UI */}
-      <div className="xl:col-span-5 space-y-6 no-print">
-        <div className="bg-white p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
+      <div className="lg:col-span-5 space-y-6 no-print">
+        <div className="bg-white p-6 sm:p-8 rounded-[2rem] border border-slate-200 shadow-sm relative overflow-hidden">
           {success && (
             <div className="absolute inset-0 bg-emerald-600/95 backdrop-blur-sm z-10 flex flex-col items-center justify-center text-white text-center p-6 animate-in fade-in duration-300">
               <CheckCircle2 className="w-16 h-16 mb-4" />
@@ -311,8 +311,8 @@ const FeesView: React.FC = () => {
         </div>
       </div>
 
-      <div className="xl:col-span-7 no-print h-full flex flex-col">
-        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[700px]">
+      <div className="lg:col-span-7 no-print h-full flex flex-col">
+        <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden flex flex-col h-[500px] sm:h-[700px]">
           <div className="p-8 border-b border-slate-100 shrink-0">
              <h3 className="text-xl font-black text-slate-900 uppercase flex items-center gap-2"><History className="w-6 h-6 text-indigo-600" /> Recent History</h3>
           </div>

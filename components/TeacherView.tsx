@@ -8,7 +8,7 @@ const TeacherView: React.FC = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState<Partial<Teacher>>({
-    name: '', fatherName: '', address: '', mobile: '', dob: '', designation: '', joiningDate: new Date().toISOString().split('T')[0], baseSalary: 0, photo: ''
+    name: '', fatherName: '', address: '', mobile: '', dob: '', gender: 'Male', designation: '', joiningDate: new Date().toISOString().split('T')[0], baseSalary: 0, photo: ''
   });
 
   useEffect(() => {
@@ -67,7 +67,7 @@ const TeacherView: React.FC = () => {
       } else {
         await dataService.saveTeacher(formData as Omit<Teacher, 'id'>);
       }
-      setFormData({ name: '', fatherName: '', address: '', mobile: '', dob: '', designation: '', joiningDate: new Date().toISOString().split('T')[0], baseSalary: 0, photo: '' });
+      setFormData({ name: '', fatherName: '', address: '', mobile: '', dob: '', gender: 'Male', designation: '', joiningDate: new Date().toISOString().split('T')[0], baseSalary: 0, photo: '' });
       setEditingId(null);
       alert(editingId ? 'Teacher record updated!' : 'Teacher registered!');
     } catch (err: any) {
@@ -115,12 +115,23 @@ const TeacherView: React.FC = () => {
               <label className="block text-[10px] font-black text-slate-400 uppercase mb-1">Salary (BDT)</label>
               <input required type="number" value={formData.baseSalary || ''} onChange={e => setFormData({...formData, baseSalary: Number(e.target.value)})} className="w-full px-4 py-3 bg-slate-50 border-none rounded-xl focus:ring-2 focus:ring-indigo-500 font-bold" />
             </div>
+            <div className="col-span-2">
+              <label className="block text-[10px] font-black text-slate-400 uppercase mb-2">Gender</label>
+              <div className="flex gap-4">
+                {['Male', 'Female'].map(g => (
+                  <label key={g} className={`flex-1 flex items-center justify-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all ${formData.gender === g ? 'border-indigo-600 bg-indigo-50 text-indigo-600' : 'border-slate-100 bg-slate-50 text-slate-400'}`}>
+                    <input type="radio" name="gender" value={g} checked={formData.gender === g} onChange={e => setFormData({...formData, gender: e.target.value as any})} className="hidden" />
+                    <span className="text-xs font-black uppercase tracking-widest">{g}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
           <button type="submit" className="w-full bg-slate-900 text-white font-black py-4 rounded-2xl hover:bg-black transition-all shadow-xl shadow-slate-100 mt-4">
             {editingId ? 'SAVE CHANGES' : 'SAVE PERSONNEL RECORD'}
           </button>
           {editingId && (
-            <button type="button" onClick={() => { setEditingId(null); setFormData({ name: '', fatherName: '', address: '', mobile: '', dob: '', designation: '', joiningDate: new Date().toISOString().split('T')[0], baseSalary: 0, photo: '' }); }} className="w-full text-slate-400 font-bold py-2 hover:text-rose-500 transition-colors">Cancel Editing</button>
+            <button type="button" onClick={() => { setEditingId(null); setFormData({ name: '', fatherName: '', address: '', mobile: '', dob: '', gender: 'Male', designation: '', joiningDate: new Date().toISOString().split('T')[0], baseSalary: 0, photo: '' }); }} className="w-full text-slate-400 font-bold py-2 hover:text-rose-500 transition-colors">Cancel Editing</button>
           )}
         </form>
       </div>
@@ -139,6 +150,9 @@ const TeacherView: React.FC = () => {
               <div className="flex-1">
                 <p className="font-black text-slate-900 flex items-center gap-2">
                   {t.name}
+                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${t.gender === 'Male' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
+                    {t.gender}
+                  </span>
                   <span className="text-[10px] font-black px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-lg uppercase">{calculateServicePeriod(t.joiningDate)} Service</span>
                 </p>
                 <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
