@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Settings as SettingsIcon, Save, Info, Trash2, AlertTriangle } from 'lucide-react';
+import { Settings as SettingsIcon, Save, Info, Trash2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { ClassRates } from '../types';
 
@@ -45,6 +45,17 @@ const SettingsView: React.FC = () => {
         } catch (err: any) {
           alert('Failed to clear data: ' + err.message);
         }
+      }
+    }
+  };
+
+  const handleBackfillIds = async () => {
+    if (confirm('This will generate Unique IDs for all existing students and teachers who do not have one. Continue?')) {
+      try {
+        await dataService.backfillUniqueIds();
+        alert('Unique IDs have been successfully generated for all existing records.');
+      } catch (err: any) {
+        alert('Failed to generate IDs: ' + err.message);
       }
     }
   };
@@ -108,6 +119,29 @@ const SettingsView: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="bg-indigo-50 p-8 rounded-[2.5rem] border border-indigo-100 shadow-sm">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-4 bg-indigo-100 rounded-2xl text-indigo-600">
+              <RefreshCw className="w-8 h-8" />
+            </div>
+            <div>
+              <h3 className="text-xl font-black text-indigo-900 uppercase">Data Maintenance</h3>
+              <p className="text-sm text-indigo-600 font-medium">Generate missing Unique IDs for existing records</p>
+            </div>
+          </div>
+          <button 
+            onClick={handleBackfillIds}
+            className="flex items-center gap-2 bg-indigo-600 text-white px-8 py-4 rounded-2xl hover:bg-indigo-700 shadow-xl shadow-indigo-100 font-black transition-all active:scale-95"
+          >
+            <RefreshCw className="w-5 h-5" /> GENERATE MISSING IDs
+          </button>
+        </div>
+        <p className="mt-6 text-[10px] font-black text-indigo-400 uppercase tracking-widest leading-relaxed">
+          Use this tool if you have imported data or have old records without "S-0000" or "T-0000" format IDs.
+        </p>
       </div>
 
       <div className="bg-rose-50 p-8 rounded-[2.5rem] border border-rose-100 shadow-sm">

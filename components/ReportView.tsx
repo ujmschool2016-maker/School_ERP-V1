@@ -71,12 +71,13 @@ const ReportView: React.FC = () => {
       icon: Users,
       color: 'bg-blue-50 text-blue-600',
       onPDF: () => {
-        const headers = [['Roll', 'Name', 'Class', 'Father Name', 'Mobile', 'Gender']];
-        const data = students.map(s => [s.roll, s.name, s.className, s.fatherName, s.mobile, s.gender]);
+        const headers = [['Unique ID', 'Roll', 'Name', 'Class', 'Father Name', 'Mobile', 'Gender', 'Admission Date']];
+        const data = students.map(s => [s.uniqueId, s.roll, s.name, s.className, s.fatherName, s.mobile, s.gender, s.admissionDate]);
         downloadPDF('Student Enrollment Report', headers, data, 'Student_Report');
       },
       onExcel: () => {
         const data = students.map(s => ({
+          UniqueID: s.uniqueId,
           Roll: s.roll,
           Name: s.name,
           Class: s.className,
@@ -84,6 +85,7 @@ const ReportView: React.FC = () => {
           Mother: s.motherName,
           Mobile: s.mobile,
           Gender: s.gender,
+          AdmissionDate: s.admissionDate,
           Address: s.address
         }));
         downloadExcel(data, 'Student_Report');
@@ -96,12 +98,13 @@ const ReportView: React.FC = () => {
       icon: UserCheck,
       color: 'bg-violet-50 text-violet-600',
       onPDF: () => {
-        const headers = [['Name', 'Designation', 'Mobile', 'Salary', 'Joined', 'Gender']];
-        const data = teachers.map(t => [t.name, t.designation, t.mobile, `৳${t.baseSalary}`, t.joiningDate, t.gender]);
+        const headers = [['Unique ID', 'Name', 'Designation', 'Mobile', 'Salary', 'Joined', 'Gender']];
+        const data = teachers.map(t => [t.uniqueId, t.name, t.designation, t.mobile, `৳${t.baseSalary}`, t.joiningDate, t.gender]);
         downloadPDF('Staff Directory Report', headers, data, 'Teacher_Report');
       },
       onExcel: () => {
         const data = teachers.map(t => ({
+          UniqueID: t.uniqueId,
           Name: t.name,
           Designation: t.designation,
           Mobile: t.mobile,

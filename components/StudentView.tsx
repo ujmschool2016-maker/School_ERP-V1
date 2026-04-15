@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, X, AlertCircle, Camera, User, MapPin, Edit3, ExternalLink, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Trash2, X, AlertCircle, Camera, User, MapPin, Edit3, ExternalLink, ShieldCheck, RefreshCw } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Student } from '../types';
 import { useAuth } from './FirebaseProvider';
@@ -17,7 +17,7 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState<Partial<Student>>({
-    roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', gender: 'Male', className: '', photo: ''
+    roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', gender: 'Male', className: '', admissionDate: new Date().toISOString().split('T')[0], photo: ''
   });
 
   useEffect(() => {
@@ -44,6 +44,15 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
     setError('');
   };
 
+  const handleGenerateId = async () => {
+    try {
+      const newId = await dataService.generateUniqueId('S');
+      setFormData({ ...formData, uniqueId: newId });
+    } catch (err: any) {
+      alert('Failed to generate ID: ' + err.message);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -66,7 +75,7 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', gender: 'Male', className: '', photo: '' });
+    setFormData({ roll: '', name: '', fatherName: '', motherName: '', address: '', mobile: '', dob: '', gender: 'Male', className: '', admissionDate: new Date().toISOString().split('T')[0], photo: '' });
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -113,6 +122,7 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-slate-50 border-b border-slate-100">
+                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Unique ID</th>
                 <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Information</th>
                 <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Parents Detail</th>
                 <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Address & Contact</th>
@@ -127,6 +137,9 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
                   className="hover:bg-indigo-50/30 cursor-pointer transition-colors group"
                   onClick={() => onViewStudent?.(s.roll)}
                 >
+                  <td className="px-6 py-5">
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-slate-200">{s.uniqueId}</span>
+                  </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-100 overflow-hidden flex items-center justify-center shrink-0">
@@ -209,15 +222,40 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
             <form onSubmit={handleSubmit} className="p-8 overflow-y-auto max-h-[75vh] space-y-6">
               {error && <div className="p-4 bg-rose-50 text-rose-600 rounded-2xl flex items-center gap-3 font-bold text-sm border border-rose-100"><AlertCircle className="w-5 h-5" /> {error}</div>}
               
-              <div className="flex flex-col items-center">
-                <div className="relative w-28 h-28 rounded-[2rem] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden mb-2 group transition-all hover:border-indigo-400">
-                  {formData.photo ? <img src={formData.photo} className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
-                  <label className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                    <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                    <span className="text-[10px] font-black uppercase">Click to Upload</span>
-                  </label>
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="flex flex-col items-center">
+                  <div className="relative w-28 h-28 rounded-[2rem] bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden mb-2 group transition-all hover:border-indigo-400">
+                    {formData.photo ? <img src={formData.photo} className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
+                    <label className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                      <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                      <span className="text-[10px] font-black uppercase">Click to Upload</span>
+                    </label>
+                  </div>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Passport Size Photo</p>
                 </div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Passport Size Photo</p>
+
+                {editingId && (
+                  <div className="flex-1 w-full sm:w-auto">
+                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Student Unique ID</label>
+                    <div className="flex gap-2">
+                      <input 
+                        value={formData.uniqueId || ''} 
+                        onChange={e => setFormData({...formData, uniqueId: e.target.value})}
+                        className="flex-1 px-4 py-3 bg-indigo-50 border-2 border-indigo-100 rounded-2xl text-indigo-600 font-black text-xl tracking-widest focus:ring-2 focus:ring-indigo-500 outline-none"
+                        placeholder="S-0000"
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleGenerateId}
+                        className="p-3 bg-indigo-100 text-indigo-600 rounded-2xl hover:bg-indigo-200 transition-colors"
+                        title="Auto-generate ID"
+                      >
+                        <RefreshCw className="w-6 h-6" />
+                      </button>
+                    </div>
+                    <p className="text-[10px] text-indigo-400 font-bold mt-2 italic">You can manually enter or auto-generate</p>
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -253,6 +291,10 @@ const StudentView: React.FC<StudentViewProps> = ({ onViewStudent }) => {
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Birth Date</label>
                   <input required type="date" value={formData.dob} onChange={e => setFormData({...formData, dob: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-bold" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Admission Date</label>
+                  <input required type="date" value={formData.admissionDate} onChange={e => setFormData({...formData, admissionDate: e.target.value})} className="w-full px-4 py-3 bg-slate-50 border-none rounded-2xl focus:ring-2 focus:ring-indigo-500 font-bold" />
                 </div>
                 <div>
                   <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Gender</label>

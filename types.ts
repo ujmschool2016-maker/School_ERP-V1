@@ -1,6 +1,7 @@
 
 export interface Student {
   id: string;
+  uniqueId: string;
   roll: string;
   name: string;
   fatherName: string;
@@ -10,11 +11,13 @@ export interface Student {
   dob: string;
   gender: 'Male' | 'Female';
   className: string;
+  admissionDate: string;
   photo?: string;
 }
 
 export interface Teacher {
   id: string;
+  uniqueId: string;
   name: string;
   fatherName: string;
   address: string;

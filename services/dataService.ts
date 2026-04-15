@@ -85,6 +85,23 @@ export const dataService = {
     }, (error) => handleFirestoreError(error, OperationType.LIST, COLLECTIONS.RATES));
   },
 
+  generateUniqueId: async (prefix: 'S' | 'T'): Promise<string> => {
+    const collName = prefix === 'S' ? COLLECTIONS.STUDENTS : COLLECTIONS.TEACHERS;
+    const snapshot = await getDocs(collection(db, collName));
+    const ids = snapshot.docs
+      .map(doc => doc.data().uniqueId as string)
+      .filter(id => id && id.startsWith(`${prefix}-`))
+      .map(id => {
+        const parts = id.split('-');
+        return parts.length > 1 ? parseInt(parts[1]) : 0;
+      })
+      .filter(num => !isNaN(num))
+      .sort((a, b) => b - a);
+    
+    const nextNum = ids.length > 0 ? ids[0] + 1 : 1;
+    return `${prefix}-${nextNum.toString().padStart(4, '0')}`;
+  },
+
   // Async methods
   getRates: async (): Promise<ClassRates[]> => {
     try {
@@ -114,7 +131,7 @@ export const dataService = {
       return [];
     }
   },
-  saveStudent: async (student: Omit<Student, 'id'>) => {
+  saveStudent: async (student: Omit<Student, 'id' | 'uniqueId'>) => {
     console.log('Attempting to save student:', student);
     try {
       // Duplicate check: Roll and Class
@@ -128,10 +145,11 @@ export const dataService = {
         throw new Error(`Student with Roll ${student.roll} already exists in ${student.className}`);
       }
 
+      const uniqueId = await dataService.generateUniqueId('S');
       const id = Date.now().toString();
-      const newStudent = { ...student, id };
+      const newStudent = { ...student, id, uniqueId };
       await setDoc(doc(db, COLLECTIONS.STUDENTS, id), newStudent);
-      console.log('Student saved successfully with ID:', id);
+      console.log('Student saved successfully with ID:', id, 'Unique ID:', uniqueId);
       return newStudent;
     } catch (error: any) {
       console.error('Error in saveStudent:', error);
@@ -176,7 +194,7 @@ export const dataService = {
       return [];
     }
   },
-  saveTeacher: async (teacher: Omit<Teacher, 'id'>) => {
+  saveTeacher: async (teacher: Omit<Teacher, 'id' | 'uniqueId'>) => {
     try {
       // Duplicate check: Mobile
       const q = query(collection(db, COLLECTIONS.TEACHERS), where('mobile', '==', teacher.mobile));
@@ -185,8 +203,9 @@ export const dataService = {
         throw new Error(`Teacher with mobile ${teacher.mobile} is already registered`);
       }
 
+      const uniqueId = await dataService.generateUniqueId('T');
       const id = Date.now().toString();
-      const newTeacher = { ...teacher, id };
+      const newTeacher = { ...teacher, id, uniqueId };
       await setDoc(doc(db, COLLECTIONS.TEACHERS, id), newTeacher);
       return newTeacher;
     } catch (error: any) {
@@ -611,6 +630,54 @@ export const dataService = {
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.DELETE, 'all_collections');
+    }
+  },
+
+  backfillUniqueIds: async () => {
+    try {
+      // Backfill Students
+      const studentSnapshot = await getDocs(collection(db, COLLECTIONS.STUDENTS));
+      const students = studentSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Student));
+      
+      // Sort by creation time (id) to maintain some order
+      students.sort((a, b) => a.id.localeCompare(b.id));
+
+      let studentCounter = 1;
+      for (const student of students) {
+        if (!student.uniqueId) {
+          // Find next available ID
+          let nextId = `S-${studentCounter.toString().padStart(4, '0')}`;
+          // Check if this ID is already taken by someone who HAS a uniqueId
+          while (students.some(s => s.uniqueId === nextId)) {
+            studentCounter++;
+            nextId = `S-${studentCounter.toString().padStart(4, '0')}`;
+          }
+          await updateDoc(doc(db, COLLECTIONS.STUDENTS, student.id), { uniqueId: nextId });
+          student.uniqueId = nextId; // Update local copy for next iterations
+          studentCounter++;
+        }
+      }
+
+      // Backfill Teachers
+      const teacherSnapshot = await getDocs(collection(db, COLLECTIONS.TEACHERS));
+      const teachers = teacherSnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id } as Teacher));
+      teachers.sort((a, b) => a.id.localeCompare(b.id));
+
+      let teacherCounter = 1;
+      for (const teacher of teachers) {
+        if (!teacher.uniqueId) {
+          let nextId = `T-${teacherCounter.toString().padStart(4, '0')}`;
+          while (teachers.some(t => t.uniqueId === nextId)) {
+            teacherCounter++;
+            nextId = `T-${teacherCounter.toString().padStart(4, '0')}`;
+          }
+          await updateDoc(doc(db, COLLECTIONS.TEACHERS, teacher.id), { uniqueId: nextId });
+          teacher.uniqueId = nextId;
+          teacherCounter++;
+        }
+      }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, 'backfill unique IDs');
     }
   }
 };

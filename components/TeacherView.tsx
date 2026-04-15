@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, UserCheck, Edit3, Camera, User, Phone, Calendar, Briefcase, Award, Trash2 } from 'lucide-react';
+import { Plus, UserCheck, Edit3, Camera, User, Phone, Calendar, Briefcase, Award, Trash2, RefreshCw } from 'lucide-react';
 import { dataService } from '../services/dataService';
 import { Teacher } from '../types';
 
@@ -59,6 +59,15 @@ const TeacherView: React.FC = () => {
     }
   };
 
+  const handleGenerateId = async () => {
+    try {
+      const newId = await dataService.generateUniqueId('T');
+      setFormData({ ...formData, uniqueId: newId });
+    } catch (err: any) {
+      alert('Failed to generate ID: ' + err.message);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -83,15 +92,39 @@ const TeacherView: React.FC = () => {
           {editingId ? 'Edit Staff Record' : 'Teacher Registration'}
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="flex flex-col items-center mb-6">
-            <div className="relative w-24 h-24 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden mb-2 group">
-              {formData.photo ? <img src={formData.photo} className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
-              <label className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
-                <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
-                <span className="text-[10px] font-black uppercase">Upload</span>
-              </label>
+          <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
+            <div className="flex flex-col items-center">
+              <div className="relative w-24 h-24 rounded-3xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center overflow-hidden mb-2 group">
+                {formData.photo ? <img src={formData.photo} className="w-full h-full object-cover" /> : <Camera className="w-8 h-8 text-slate-300" />}
+                <label className="absolute inset-0 bg-black/40 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                  <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" />
+                  <span className="text-[10px] font-black uppercase">Upload</span>
+                </label>
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Profile Photo</p>
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Profile Photo</p>
+
+            {editingId && (
+              <div className="flex-1 w-full">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Teacher Unique ID</label>
+                <div className="flex gap-2">
+                  <input 
+                    value={formData.uniqueId || ''} 
+                    onChange={e => setFormData({...formData, uniqueId: e.target.value})}
+                    className="flex-1 px-4 py-3 bg-slate-900 text-white rounded-xl font-black text-lg tracking-widest focus:ring-2 focus:ring-indigo-500 outline-none text-center"
+                    placeholder="T-0000"
+                  />
+                  <button 
+                    type="button"
+                    onClick={handleGenerateId}
+                    className="p-3 bg-slate-100 text-slate-900 rounded-xl hover:bg-slate-200 transition-colors"
+                    title="Auto-generate ID"
+                  >
+                    <RefreshCw className="w-6 h-6" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -148,14 +181,16 @@ const TeacherView: React.FC = () => {
                 {t.photo ? <img src={t.photo} className="w-full h-full object-cover" /> : t.name.charAt(0)}
               </div>
               <div className="flex-1">
-                <p className="font-black text-slate-900 flex items-center gap-2">
-                  {t.name}
-                  <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${t.gender === 'Male' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
-                    {t.gender}
-                  </span>
-                  <span className="text-[10px] font-black px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-lg uppercase">{calculateServicePeriod(t.joiningDate)} Service</span>
-                </p>
-                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="px-2 py-0.5 bg-slate-900 text-white text-[9px] font-black rounded uppercase tracking-tighter">{t.uniqueId}</span>
+                  <p className="font-black text-slate-900 flex items-center gap-2">
+                    {t.name}
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${t.gender === 'Male' ? 'bg-blue-100 text-blue-600' : 'bg-rose-100 text-rose-600'}`}>
+                      {t.gender}
+                    </span>
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-x-4 gap-y-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                     <Briefcase className="w-3 h-3" /> {t.designation}
                   </p>
@@ -165,6 +200,7 @@ const TeacherView: React.FC = () => {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-1">
                     <Calendar className="w-3 h-3" /> Joined: {t.joiningDate}
                   </p>
+                  <span className="text-[10px] font-black px-2 py-0.5 bg-indigo-50 text-indigo-500 rounded-lg uppercase">{calculateServicePeriod(t.joiningDate)} Service</span>
                 </div>
               </div>
               <div className="flex items-center gap-6">
